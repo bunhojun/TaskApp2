@@ -23,15 +23,21 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import io.realm.Realm;
+import io.realm.RealmObject;
 import io.realm.RealmResults;
+import io.realm.Sort;
 
 public class InputActivity extends AppCompatActivity {
 
     private int mYear, mMonth, mDay, mHour, mMinute;
-    private Button mDateButton, mTimeButton;
+    private Button mDateButton, mTimeButton, mCategoryButton;
     private EditText mTitleEdit, mContentEdit;
     private Task mTask;
     private Category mCategory;
+    private Realm mRealm;
+
+    private CategoryAdapter mCategoryAdapter;
+
     private View.OnClickListener mOnDateClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -67,11 +73,19 @@ public class InputActivity extends AppCompatActivity {
         }
     };
 
+    private View.OnClickListener mOnCategoryClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            Intent intent = new Intent(InputActivity.this, InputCategoryActivity.class);
+            startActivity(intent);
+
+        }
+    };
+
     private View.OnClickListener mOnDoneClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             addTask();
-            addCategory();
             finish();
         }
     };
@@ -80,6 +94,7 @@ public class InputActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_input);
+
 
         // ActionBarを設定する
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -93,6 +108,8 @@ public class InputActivity extends AppCompatActivity {
         mDateButton.setOnClickListener(mOnDateClickListener);
         mTimeButton =  findViewById(R.id.times_button);
         mTimeButton.setOnClickListener(mOnTimeClickListener);
+        mCategoryButton = findViewById(R.id.categoryButton);
+        mCategoryButton.setOnClickListener(mOnCategoryClickListener);
         findViewById(R.id.done_button).setOnClickListener(mOnDoneClickListener);
         mTitleEdit =  findViewById(R.id.title_edit_text);
         mContentEdit =  findViewById(R.id.content_edit_text);
@@ -156,11 +173,33 @@ public class InputActivity extends AppCompatActivity {
         String title = mTitleEdit.getText().toString();
         String content = mContentEdit.getText().toString();
 
+
         mTask.setTitle(title);
         mTask.setContents(content);
         GregorianCalendar calendar = new GregorianCalendar(mYear, mMonth, mDay, mHour, mMinute);
         Date date = calendar.getTime();
         mTask.setDate(date);
+
+        //Spinner取得
+        Spinner spinner2 = findViewById(R.id.spinner2);
+        //リスナー設定
+        spinner2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long id) {
+                Spinner spinner2 = (Spinner) parent;
+                // 選択されたアイテムを取得します
+                String item = spinner2.getSelectedItem().toString();
+                Category categoryRealmResults = mRealm.where(Category.class).equalTo("category", item).findFirst();
+                int categoryId = categoryRealmResults.getId();
+                mTask.setCategoryId(categoryId);
+
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> arg0) {
+            }
+        });
+
 
         realm.copyToRealmOrUpdate(mTask);
         realm.commitTransaction();
@@ -180,32 +219,23 @@ public class InputActivity extends AppCompatActivity {
         alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), resultPendingIntent);
     }
 
-    private void addCategory() {
-        Realm realm = Realm.getDefaultInstance();
-        realm.beginTransaction();
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //Spinner取得
+        Spinner spinner2 = findViewById(R.id.spinner2);
+        //Realm呼び出し
+        mRealm = Realm.getDefaultInstance();
+        //アダプタ作成
+        mCategoryAdapter = new CategoryAdapter(InputActivity.this);
+        // Realmデータベースから、「全てのデータを取得して新しい日時順に並べた結果」を取得
+        RealmResults<Category> categoryRealmResults = mRealm.where(Category.class).findAllSorted("id", Sort.DESCENDING);
+        // 上記の結果を、CategoryList としてセットする（アイテム追加）
+        mCategoryAdapter.setCategoryList(mRealm.copyFromRealm(categoryRealmResults));
 
-        ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // アイテムを追加する
-        adapter.add();
-        Spinner spinner = findViewById(R.id.spinner);
-        // アダプターを設定する
-        spinner.setAdapter(adapter);
-        // スピナーのアイテムが選択された時に呼び出されるコールバックリスナーを登録する
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view,
-                                       int position, long id) {
-                Spinner spinner = (Spinner) parent;
-                // 選択されたアイテムを取得します
-                String item = (String) spinner.getSelectedItem();
-                Toast.makeText(InputActivity.this, item, Toast.LENGTH_LONG).show();
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0) {
-            }
-        });
-
+        //スピナーにアダプタ設定
+        spinner2.setAdapter(mCategoryAdapter);
 
     }
 }
+

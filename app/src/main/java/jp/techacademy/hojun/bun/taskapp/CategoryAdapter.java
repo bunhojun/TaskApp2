@@ -5,6 +5,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Spinner;
+import android.widget.TextView;
 
 import java.util.List;
 
@@ -39,9 +41,11 @@ public class CategoryAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
 
         if (convertView == null) {
-            convertView = mLayoutInflater.inflate(android.R.layout.simple_list_item_2, null);
+            convertView = mLayoutInflater.inflate(android.R.layout.simple_spinner_dropdown_item, null);
         }
 
+        TextView textView1 = convertView.findViewById(android.R.id.text1);
+        textView1.setText(mCategoryList.get(position).getCategory());
 
 
         return convertView;

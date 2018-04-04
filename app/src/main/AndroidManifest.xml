@@ -23,15 +23,22 @@
             android:name=".InputActivity"
             android:label="タスク"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar"
-            >
+            android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="jp.techacademy.hojun.bun.taskapp.MainActivity"/>
+                android:value="jp.techacademy.hojun.bun.taskapp.MainActivity" />
+        </activity>
+        <activity
+            android:name=".InputCategoryActivity"
+            android:label="カテゴリー追加"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="jp.techacademy.hojun.bun.taskapp.MainActivity" />
         </activity>
 
-        <receiver android:name=".TaskAlarmReceiver"/>
-
+        <receiver android:name=".TaskAlarmReceiver" />
     </application>
 
 </manifest>

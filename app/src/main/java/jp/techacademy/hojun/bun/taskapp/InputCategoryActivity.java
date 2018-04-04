@@ -3,6 +3,7 @@ package jp.techacademy.hojun.bun.taskapp;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,6 +23,7 @@ public class InputCategoryActivity extends AppCompatActivity {
         public void onClick(View v) {
             addNewCategory();
             finish();
+
         }
     };
 
@@ -29,7 +31,6 @@ public class InputCategoryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_input_category);
-
 
         // ActionBarを設定する
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -43,20 +44,15 @@ public class InputCategoryActivity extends AppCompatActivity {
         findViewById(R.id.categoryInputButton).setOnClickListener(mOnCategoryInputClickListener);
         mCategoryEdit =  findViewById(R.id.category_edit_text);
 
-
-
     }
 
 
     private void addNewCategory() {
         Realm realm = Realm.getDefaultInstance();
-
         realm.beginTransaction();
-
             // 新規作成
             mCategory = new Category();
-            RealmResults<Category> categoryRealmResults = realm.where(Category.class).findAll();
-
+        RealmResults<Category> categoryRealmResults = realm.where(Category.class).findAll();
             int identifier;
             if (categoryRealmResults.max("id") != null) {
                 identifier = categoryRealmResults.max("id").intValue() + 1;
@@ -64,18 +60,11 @@ public class InputCategoryActivity extends AppCompatActivity {
                 identifier = 0;
             }
             mCategory.setId(identifier);
-
-
         String category = mCategoryEdit.getText().toString();
         mCategory.setCategory(category);
-
         realm.copyToRealmOrUpdate(mCategory);
         realm.commitTransaction();
-
-
         realm.close();
-
     }
-
 
 }

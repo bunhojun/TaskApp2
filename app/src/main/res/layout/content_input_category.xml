@@ -13,18 +13,13 @@
     tools:context="jp.techacademy.hojun.bun.taskapp.InputCategoryActivity"
     tools:showIn="@layout/activity_input_category">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="カテゴリー追加"
-        android:id="@+id/textView2" />
+
 
     <EditText
         android:id="@+id/category_edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/textView2"
         android:layout_marginTop="18dp"
         android:hint="新規カテゴリー" />
 

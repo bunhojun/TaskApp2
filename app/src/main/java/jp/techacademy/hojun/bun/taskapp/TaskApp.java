@@ -13,5 +13,6 @@ public class TaskApp extends Application {
     public void onCreate() {
         super.onCreate();
         Realm.init(this);
+
     }
 }
