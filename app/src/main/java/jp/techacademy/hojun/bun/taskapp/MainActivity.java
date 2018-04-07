@@ -11,11 +11,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -44,34 +41,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //Spinner取得
-        Spinner spinner1 = findViewById(R.id.spinner1);
-        //Realm呼び出し
-        mRealm = Realm.getDefaultInstance();
-        mRealm.addChangeListener(mRealmListener);
-        //アダプタ作成
-        mCategoryAdapter = new CategoryAdapter(MainActivity.this);
-        // Realmデータベースから、「全てのデータを取得して新しい日時順に並べた結果」を取得
-        RealmResults<Category> categoryRealmResults = mRealm.where(Category.class).findAllSorted("id", Sort.DESCENDING);
-        // 上記の結果を、CategoryList としてセットする（アイテム追加）
-        mCategoryAdapter.setCategoryList(mRealm.copyFromRealm(categoryRealmResults));
-        //スピナーにアダプタ設定
-        spinner1.setAdapter(mCategoryAdapter);
-        //リスナー設定
-        spinner1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view,
-                                       int position, long id) {
-                Spinner spinner1 = (Spinner) parent;
-                // 選択されたアイテムを取得します
-                String item = spinner1.getSelectedItem().toString();
-                reloadSortedView();
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0) {
-            }
-        });
 
 
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -163,21 +132,68 @@ public class MainActivity extends AppCompatActivity {
         // 表示を更新するために、アダプターにデータが変更されたことを知らせる
 
 
-
         mTaskAdapter.notifyDataSetChanged();
     }
 
     private void reloadSortedView() {
-            Spinner spinner1 = findViewById(R.id.spinner1);
-            String categoryChosen = spinner1.getSelectedItem().toString();
-            // Realmデータベースから、「検索された情報を取得して新しい日時順に並べた結果」を取得
-            RealmResults<Category> categoryRealmResults = mRealm.where(Category.class).equalTo("category", categoryChosen).findAllSorted("id", Sort.DESCENDING);
-            // 上記の結果を、CategoryList としてセットする
-            mCategoryAdapter.setCategoryList(mRealm.copyFromRealm(categoryRealmResults));
-            // CategoryのListView用のアダプタに渡す
-            mListView.setAdapter(mCategoryAdapter);
-            // 表示を更新するために、アダプターにデータが変更されたことを知らせる
-            mCategoryAdapter.notifyDataSetChanged();
+        Spinner spinner1 = findViewById(R.id.spinner1);
+        Category categoryChosen = (Category) spinner1.getSelectedItem();
+        int categoryId = categoryChosen.getId();
+
+        // Realmデータベースから、「検索された情報を取得して新しい日時順に並べた結果」を取得
+        RealmResults<Task> categoryChosenId = mRealm.where(Task.class).equalTo("categoryId", categoryId).findAllSorted("id", Sort.DESCENDING);
+        // 上記の結果を、CategoryList としてセットする
+        mTaskAdapter.setTaskList(mRealm.copyFromRealm(categoryChosenId));
+        // CategoryのListView用のアダプタに渡す
+        mListView.setAdapter(mTaskAdapter);
+        // 表示を更新するために、アダプターにデータが変更されたことを知らせる
+        mTaskAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Realm realm = Realm.getDefaultInstance();
+
+        RealmResults<Category> categoryRealmResults2 = realm.where(Category.class).findAll();
+
+        for(Category category2 : categoryRealmResults2) {
+            Log.d("debug", "category = " + category2.getCategory() + ", id=" + category2.getId());
+        }
+
+        RealmResults<Task> taskRealmResults2 = realm.where(Task.class).findAll();
+        for(Task task3 : taskRealmResults2) {
+            Log.d("debug", "task = " + task3.getTitle() + " categoryId = " + task3.getCategoryId());
+        }
+
+
+        //Spinner取得
+        Spinner spinner1 = findViewById(R.id.spinner1);
+        //Realm呼び出し
+        mRealm = Realm.getDefaultInstance();
+        mRealm.addChangeListener(mRealmListener);
+        //アダプタ作成
+        mCategoryAdapter = new CategoryAdapter(MainActivity.this);
+        // Realmデータベースから、「全てのデータを取得して新しい日時順に並べた結果」を取得
+        RealmResults<Category> categoryRealmResults = mRealm.where(Category.class).findAllSorted("id", Sort.DESCENDING);
+        // 上記の結果を、CategoryList としてセットする（アイテム追加）
+        mCategoryAdapter.setCategoryList(mRealm.copyFromRealm(categoryRealmResults));
+        //スピナーにアダプタ設定
+        spinner1.setAdapter(mCategoryAdapter);
+        //リスナー設定
+        spinner1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long id) {
+                // 選択されたアイテムを取得します
+                reloadSortedView();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> arg0) {
+            }
+        });
     }
 
     @Override

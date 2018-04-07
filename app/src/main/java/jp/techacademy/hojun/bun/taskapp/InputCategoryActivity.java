@@ -5,7 +5,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 
 
@@ -50,6 +49,7 @@ public class InputCategoryActivity extends AppCompatActivity {
     private void addNewCategory() {
         Realm realm = Realm.getDefaultInstance();
         realm.beginTransaction();
+
             // 新規作成
             mCategory = new Category();
         RealmResults<Category> categoryRealmResults = realm.where(Category.class).findAll();
@@ -64,6 +64,9 @@ public class InputCategoryActivity extends AppCompatActivity {
         mCategory.setCategory(category);
         realm.copyToRealmOrUpdate(mCategory);
         realm.commitTransaction();
+
+
+
         realm.close();
     }
 
