@@ -33,6 +33,7 @@ public class InputActivity extends AppCompatActivity {
     private Task mTask;
     private Realm mRealm;
     private Integer categoryId;
+    private Spinner spinner2;
 
     private CategoryAdapter mCategoryAdapter;
 
@@ -144,11 +145,35 @@ public class InputActivity extends AppCompatActivity {
             String timeString = String.format("%02d", mHour) + ":" + String.format("%02d", mMinute);
             mDateButton.setText(dateString);
             mTimeButton.setText(timeString);
+
         }
+
+        spinner2 = findViewById(R.id.spinner2);
+
+
+        // 選択されたアイテムを取得します
+        spinner2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long id) {
+                Spinner spinner2 = (Spinner) parent;
+                Category categoryChosen = (Category)spinner2.getSelectedItem();
+                categoryId = categoryChosen.getId();
+                Log.d("debug", "categoryId = " + categoryId.toString());
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> arg0) {
+            }
+        });
     }
 
     private void addTask() {
         Realm realm = Realm.getDefaultInstance();
+        if (categoryId == null) {
+            return;
+        }
 
         if (mTask == null) {
             // 新規作成の場合
@@ -173,29 +198,13 @@ public class InputActivity extends AppCompatActivity {
         GregorianCalendar calendar = new GregorianCalendar(mYear, mMonth, mDay, mHour, mMinute);
         Date date = calendar.getTime();
         mTask.setDate(date);
+        mTask.setCategoryId(categoryId);
 
-        Spinner spinner2 = findViewById(R.id.spinner2);
 
-        categoryId = null;
 
-        // 選択されたアイテムを取得します
-        spinner2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view,
-                                       int position, long id) {
-                Spinner spinner2 = (Spinner) parent;
-                Category categoryChosen = (Category)spinner2.getSelectedItem();
-                categoryId = categoryChosen.getId();
-                Log.d("debug", "categoryId = " + categoryId.toString());
+        //Spinner spinner2 = findViewById(R.id.spinner2);
 
-                mTask.setCategoryId(categoryId);
 
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0) {
-            }
-        });
 
         //Spinner取得
         /*Spinner spinner2 = findViewById(R.id.spinner2);
@@ -236,6 +245,8 @@ public class InputActivity extends AppCompatActivity {
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), resultPendingIntent);
     }
+
+
     @Override
     protected void onResume() {
         super.onResume();
