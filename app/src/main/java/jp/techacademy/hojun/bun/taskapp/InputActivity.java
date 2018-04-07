@@ -8,22 +8,20 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TimePicker;
-import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
 import io.realm.Realm;
-import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.Sort;
 
@@ -33,8 +31,8 @@ public class InputActivity extends AppCompatActivity {
     private Button mDateButton, mTimeButton, mCategoryButton;
     private EditText mTitleEdit, mContentEdit;
     private Task mTask;
-    private Category mCategory;
     private Realm mRealm;
+    private Integer categoryId;
 
     private CategoryAdapter mCategoryAdapter;
 
@@ -78,7 +76,6 @@ public class InputActivity extends AppCompatActivity {
         public void onClick(View view) {
             Intent intent = new Intent(InputActivity.this, InputCategoryActivity.class);
             startActivity(intent);
-
         }
     };
 
@@ -104,15 +101,15 @@ public class InputActivity extends AppCompatActivity {
         }
 
         // UI部品の設定
-        mDateButton =  findViewById(R.id.date_button);
+        mDateButton = findViewById(R.id.date_button);
         mDateButton.setOnClickListener(mOnDateClickListener);
-        mTimeButton =  findViewById(R.id.times_button);
+        mTimeButton = findViewById(R.id.times_button);
         mTimeButton.setOnClickListener(mOnTimeClickListener);
         mCategoryButton = findViewById(R.id.categoryButton);
         mCategoryButton.setOnClickListener(mOnCategoryClickListener);
         findViewById(R.id.done_button).setOnClickListener(mOnDoneClickListener);
-        mTitleEdit =  findViewById(R.id.title_edit_text);
-        mContentEdit =  findViewById(R.id.content_edit_text);
+        mTitleEdit = findViewById(R.id.title_edit_text);
+        mContentEdit = findViewById(R.id.content_edit_text);
 
 
         // EXTRA_TASK から Task の id を取得して、 id から Task のインスタンスを取得する
@@ -153,8 +150,6 @@ public class InputActivity extends AppCompatActivity {
     private void addTask() {
         Realm realm = Realm.getDefaultInstance();
 
-        realm.beginTransaction();
-
         if (mTask == null) {
             // 新規作成の場合
             mTask = new Task();
@@ -173,15 +168,37 @@ public class InputActivity extends AppCompatActivity {
         String title = mTitleEdit.getText().toString();
         String content = mContentEdit.getText().toString();
 
-
         mTask.setTitle(title);
         mTask.setContents(content);
         GregorianCalendar calendar = new GregorianCalendar(mYear, mMonth, mDay, mHour, mMinute);
         Date date = calendar.getTime();
         mTask.setDate(date);
 
-        //Spinner取得
         Spinner spinner2 = findViewById(R.id.spinner2);
+
+        categoryId = null;
+
+        // 選択されたアイテムを取得します
+        spinner2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long id) {
+                Spinner spinner2 = (Spinner) parent;
+                Category categoryChosen = (Category)spinner2.getSelectedItem();
+                categoryId = categoryChosen.getId();
+                Log.d("debug", "categoryId = " + categoryId.toString());
+
+                mTask.setCategoryId(categoryId);
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> arg0) {
+            }
+        });
+
+        //Spinner取得
+        /*Spinner spinner2 = findViewById(R.id.spinner2);
         //リスナー設定
         spinner2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -189,18 +206,20 @@ public class InputActivity extends AppCompatActivity {
                                        int position, long id) {
                 Spinner spinner2 = (Spinner) parent;
                 // 選択されたアイテムを取得します
-                String item = spinner2.getSelectedItem().toString();
-                Category categoryRealmResults = mRealm.where(Category.class).equalTo("category", item).findFirst();
-                int categoryId = categoryRealmResults.getId();
+                Category categoryChosen = (Category)spinner2.getSelectedItem();
+                int categoryId = categoryChosen.getId();
                 mTask.setCategoryId(categoryId);
+                Log.d("debug", "-----------------------------------------------------");
+                Log.d("debug", "categoryId = " + categoryId);
+                Log.d("debug", "mTask.getCategoryId() = " + mTask.getCategoryId());
 
             }
             @Override
             public void onNothingSelected(AdapterView<?> arg0) {
             }
-        });
+        });*/
 
-
+        realm.beginTransaction();
         realm.copyToRealmOrUpdate(mTask);
         realm.commitTransaction();
 
@@ -214,11 +233,9 @@ public class InputActivity extends AppCompatActivity {
                 resultIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT
         );
-
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), resultPendingIntent);
     }
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -232,10 +249,7 @@ public class InputActivity extends AppCompatActivity {
         RealmResults<Category> categoryRealmResults = mRealm.where(Category.class).findAllSorted("id", Sort.DESCENDING);
         // 上記の結果を、CategoryList としてセットする（アイテム追加）
         mCategoryAdapter.setCategoryList(mRealm.copyFromRealm(categoryRealmResults));
-
         //スピナーにアダプタ設定
         spinner2.setAdapter(mCategoryAdapter);
-
     }
 }
-
